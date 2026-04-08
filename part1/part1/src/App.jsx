@@ -1,65 +1,35 @@
-// 1. Helper Components
-const Header = (props) => {
-  return <h1>{props.course}</h1>
-}
+import { useState } from 'react'
 
-const Part = (props) => {
-  return (
-    <p>
-      {props.part.name} {props.part.exercises}
-    </p>
-  )
-}
-
-const Content = (props) => {
-  // We use [0], [1], [2] to grab specific items out of the array
-  return (
-    <div>
-      <Part part={props.parts[0]} />
-      <Part part={props.parts[1]} />
-      <Part part={props.parts[2]} />
-    </div>
-  )
-}
-
-const Total = (props) => {
-  // We do math using the array items
-  return (
-    <p>
-      Number of exercises {props.parts[0].exercises + props.parts[1].exercises + props.parts[2].exercises}
-    </p>
-  )
-}
-
-// 2. The Root Component
 const App = () => {
-  const course = 'Half Stack application development'
-  
-  // Here is the new Array for Exercise 1.4
-  const parts = [
-    {
-      name: 'Fundamentals of React',
-      exercises: 10
-    },
-    {
-      name: 'Using props to pass data',
-      exercises: 7
-    },
-    {
-      name: 'State of a component',
-      exercises: 14
-    }
+  const anecdotes = [
+    'If it hurts, do it more often.',
+    'Adding manpower to a late software project makes it later!',
+    'The first 90 percent of the code accounts for the first 90 percent of the development time...The remaining 10 percent of the code accounts for the other 90 percent of the development time.',
+    'Any fool can write code that a computer can understand. Good programmers write code that humans can understand.',
+    'Premature optimization is the root of all evil.',
+    'Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.',
+    'Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.',
+    'The only way to go fast, is to go well.'
   ]
+   
+  // State to keep track of the index of the anecdote currently displayed
+  const [selected, setSelected] = useState(0)
+
+  // Function to generate a random number and update state
+  const handleRandomClick = () => {
+    // Math.random() gives 0 to 0.999... 
+    // multiplying by length (8) gives 0 to 7.999...
+    // Math.floor() rounds it down to a whole number (0, 1, 2, 3, 4, 5, 6, or 7)
+    const randomIndex = Math.floor(Math.random() * anecdotes.length)
+    setSelected(randomIndex)
+  }
 
   return (
     <div>
-      <Header course={course} />
-      {/* Now we only pass the single array! */}
-      <Content parts={parts} />
-      <Total parts={parts} />
+      <p>{anecdotes[selected]}</p>
+      <button onClick={handleRandomClick}>next anecdote</button>
     </div>
   )
 }
 
-// 3. The Export (This prevents the EOF error!)
 export default App
