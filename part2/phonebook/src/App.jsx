@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 
+// --- Sub-components (Exercise 2.10) ---
 const Filter = ({ value, onChange }) => (
   <div>
     filter shown with: <input value={value} onChange={onChange} />
@@ -22,28 +24,49 @@ const Persons = ({ personsToShow }) => (
   </div>
 )
 
+// --- Main App Component ---
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456' },
-    { name: 'Ada Lovelace', number: '39-44-5323523' },
-    { name: 'Dan Abramov', number: '12-43-234345' },
-    { name: 'Mary Poppendieck', number: '39-23-6423122' }
-  ]) 
+  const [persons, setPersons] = useState([]) // Start with an empty array
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
 
-  const addName = (event) => {
-    event.preventDefault()
-    if (persons.some(p => p.name === newName)) {
-      alert(`${newName} is already added to phonebook`)
-      return
-    }
-    const nameObject = { name: newName, number: newNumber }
-    setPersons(persons.concat(nameObject))
-    setNewName('')
-    setNewNumber('')
+  // Exercise 2.11: Fetching data from the server
+  useEffect(() => {
+    console.log('Effect running: Fetching data...')
+    axios
+      .get('http://localhost:3001/persons')
+      .then(response => {
+        console.log('Promise fulfilled: Data received!')
+        setPersons(response.data)
+      })
+  }, []) // Empty array [] ensures this runs only ONCE
+
+ const addName = (event) => {
+  event.preventDefault()
+  
+  if (persons.some(p => p.name === newName)) {
+    alert(`${newName} is already added to phonebook`)
+    return
   }
+
+  const nameObject = { 
+    name: newName, 
+    number: newNumber 
+    // Notice we don't add an ID here! 
+    // json-server will create a unique ID for us automatically.
+  }
+
+  // Send the new object to the server
+  axios
+    .post('http://localhost:3001/persons', nameObject)
+    .then(response => {
+      // response.data contains the new person including the ID from the server
+      setPersons(persons.concat(response.data))
+      setNewName('')
+      setNewNumber('')
+    })
+}
 
   const personsToShow = persons.filter(person => 
     person.name.toLowerCase().includes(filter.toLowerCase())
