@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import personService from './services/persons' 
 
-// Sub-components stay outside here - this is correct
 const Filter = ({ value, onChange }) => (
   <div>filter shown with: <input value={value} onChange={onChange} /></div>
 )
@@ -25,74 +24,72 @@ const Persons = ({ personsToShow, deletePerson }) => (
   </div>
 )
 
+const Notification = ({ message }) => {
+  if (message === null) return null
+  return <div className="success">{message}</div>
+}
+
 const App = () => {
   const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
+  const [message, setMessage] = useState(null)
+
+  useEffect(() => {
+    personService.getAll().then(initialPersons => {
+      setPersons(initialPersons)
+    })
+  }, [])
+
+  const addName = (event) => {
+    event.preventDefault()
+    const existingPerson = persons.find(p => p.name === newName)
+
+    if (existingPerson) {
+      if (window.confirm(`${newName} is already added, replace number?`)) {
+        const changedPerson = { ...existingPerson, number: newNumber }
+        
+        personService
+          .update(existingPerson.id, changedPerson)
+          .then(returnedPerson => {
+            setPersons(persons.map(p => p.id !== existingPerson.id ? p : returnedPerson))
+            setNewName('')
+            setNewNumber('')
+            setMessage(`Updated ${returnedPerson.name}'s number`)
+            setTimeout(() => setMessage(null), 5000)
+          })
+          .catch(error => {
+            alert(`Information of ${newName} has already been removed from server`)
+            setPersons(persons.filter(p => p.id !== existingPerson.id))
+          })
+      }
+      return 
+    }
+
+    const nameObject = { name: newName, number: newNumber }
+    personService
+      .create(nameObject)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
+        setNewName('')
+        setNewNumber('')
+        setMessage(`Added ${returnedPerson.name}`)
+        setTimeout(() => setMessage(null), 5000)
+      })
+  }
 
   const deletePerson = (id, name) => {
-  if (window.confirm(`Delete ${name}?`)) {
-    personService
-      .remove(id)
-      .then(() => {
-        // After deleting from server, update local state to remove the person
-        setPersons(persons.filter(p => p.id !== id))
-      })
-      .catch(error => {
-        alert(`The person '${name}' was already deleted from server`)
-        setPersons(persons.filter(p => p.id !== id))
-      })
-  }
-}
-
-  // --- THIS MUST BE INSIDE THE APP COMPONENT ---
-  useEffect(() => {
-    personService
-      .getAll()
-      .then(initialPersons => {
-        setPersons(initialPersons)
-      })
-  }, [])
-  // ---------------------------------------------
-
-const addName = (event) => {
-  event.preventDefault()
-  
-  const existingPerson = persons.find(p => p.name === newName)
-
-  if (existingPerson) {
-    if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
-      const changedPerson = { ...existingPerson, number: newNumber }
-
+    if (window.confirm(`Delete ${name}?`)) {
       personService
-        .update(existingPerson.id, changedPerson)
-        .then(returnedPerson => {
-          // Update the state: map through persons, replace the old one with the returned one
-          setPersons(persons.map(person => 
-            person.id !== existingPerson.id ? person : returnedPerson
-          ))
-          setNewName('')
-          setNewNumber('')
-        })
-        .catch(error => {
-          alert(`Information of ${newName} has already been removed from server`)
-          setPersons(persons.filter(p => p.id !== existingPerson.id))
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter(p => p.id !== id))
+          setMessage(`Deleted ${name}`)
+          setTimeout(() => setMessage(null), 5000)
         })
     }
-    return // Exit the function so we don't create a duplicate
   }
-
-  // ... the rest of your original code for creating a NEW person ...
-  const nameObject = { name: newName, number: newNumber }
-  personService
-    .create(nameObject)
-    .then(returnedPerson => {
-      setPersons(persons.concat(returnedPerson))
-      setNewName('')
-      setNewNumber('')
-    })
-}
 
   const personsToShow = persons.filter(person => 
     person.name.toLowerCase().includes(filter.toLowerCase())
@@ -101,11 +98,11 @@ const addName = (event) => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} />
       <Filter value={filter} onChange={(e) => setFilter(e.target.value)} />
       <h3>Add a new</h3>
       <PersonForm 
-        addName={addName}
-        newName={newName}
+        addName={addName} newName={newName}
         handleNameChange={(e) => setNewName(e.target.value)}
         newNumber={newNumber}
         handleNumberChange={(e) => setNewNumber(e.target.value)}

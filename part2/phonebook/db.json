@@ -24,6 +24,11 @@
       "name": "Natasha",
       "number": "555-1234",
       "id": "gaxEAAd-FbA"
+    },
+    {
+      "name": "natasha",
+      "number": "666",
+      "id": "tXik2_-H2vw"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
