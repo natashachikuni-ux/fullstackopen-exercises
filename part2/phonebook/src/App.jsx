@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons' 
 
-// --- Sub-components (Exercise 2.10) ---
+// Sub-components stay outside here - this is correct
 const Filter = ({ value, onChange }) => (
-  <div>
-    filter shown with: <input value={value} onChange={onChange} />
-  </div>
+  <div>filter shown with: <input value={value} onChange={onChange} /></div>
 )
 
 const PersonForm = (props) => (
@@ -16,53 +14,81 @@ const PersonForm = (props) => (
   </form>
 )
 
-const Persons = ({ personsToShow }) => (
+const Persons = ({ personsToShow, deletePerson }) => (
   <div>
     {personsToShow.map(person => 
-      <p key={person.name}>{person.name} {person.number}</p>
+      <p key={person.id}>
+        {person.name} {person.number} 
+        <button onClick={() => deletePerson(person.id, person.name)}>delete</button>
+      </p>
     )}
   </div>
 )
 
-// --- Main App Component ---
 const App = () => {
-  const [persons, setPersons] = useState([]) // Start with an empty array
+  const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
 
-  // Exercise 2.11: Fetching data from the server
-  useEffect(() => {
-    console.log('Effect running: Fetching data...')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('Promise fulfilled: Data received!')
-        setPersons(response.data)
+  const deletePerson = (id, name) => {
+  if (window.confirm(`Delete ${name}?`)) {
+    personService
+      .remove(id)
+      .then(() => {
+        // After deleting from server, update local state to remove the person
+        setPersons(persons.filter(p => p.id !== id))
       })
-  }, []) // Empty array [] ensures this runs only ONCE
+      .catch(error => {
+        alert(`The person '${name}' was already deleted from server`)
+        setPersons(persons.filter(p => p.id !== id))
+      })
+  }
+}
 
- const addName = (event) => {
+  // --- THIS MUST BE INSIDE THE APP COMPONENT ---
+  useEffect(() => {
+    personService
+      .getAll()
+      .then(initialPersons => {
+        setPersons(initialPersons)
+      })
+  }, [])
+  // ---------------------------------------------
+
+const addName = (event) => {
   event.preventDefault()
   
-  if (persons.some(p => p.name === newName)) {
-    alert(`${newName} is already added to phonebook`)
-    return
+  const existingPerson = persons.find(p => p.name === newName)
+
+  if (existingPerson) {
+    if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+      const changedPerson = { ...existingPerson, number: newNumber }
+
+      personService
+        .update(existingPerson.id, changedPerson)
+        .then(returnedPerson => {
+          // Update the state: map through persons, replace the old one with the returned one
+          setPersons(persons.map(person => 
+            person.id !== existingPerson.id ? person : returnedPerson
+          ))
+          setNewName('')
+          setNewNumber('')
+        })
+        .catch(error => {
+          alert(`Information of ${newName} has already been removed from server`)
+          setPersons(persons.filter(p => p.id !== existingPerson.id))
+        })
+    }
+    return // Exit the function so we don't create a duplicate
   }
 
-  const nameObject = { 
-    name: newName, 
-    number: newNumber 
-    // Notice we don't add an ID here! 
-    // json-server will create a unique ID for us automatically.
-  }
-
-  // Send the new object to the server
-  axios
-    .post('http://localhost:3001/persons', nameObject)
-    .then(response => {
-      // response.data contains the new person including the ID from the server
-      setPersons(persons.concat(response.data))
+  // ... the rest of your original code for creating a NEW person ...
+  const nameObject = { name: newName, number: newNumber }
+  personService
+    .create(nameObject)
+    .then(returnedPerson => {
+      setPersons(persons.concat(returnedPerson))
       setNewName('')
       setNewNumber('')
     })
@@ -76,7 +102,6 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
       <Filter value={filter} onChange={(e) => setFilter(e.target.value)} />
-
       <h3>Add a new</h3>
       <PersonForm 
         addName={addName}
@@ -85,9 +110,8 @@ const App = () => {
         newNumber={newNumber}
         handleNumberChange={(e) => setNewNumber(e.target.value)}
       />
-
       <h3>Numbers</h3>
-      <Persons personsToShow={personsToShow} />
+      <Persons personsToShow={personsToShow} deletePerson={deletePerson} />
     </div>
   )
 }
