@@ -18,12 +18,14 @@ const PersonForm = ({ createPerson }) => {
     <form onSubmit={addPerson}>
       <div>
         name: <input
+          name="name"
           value={newName}
           onChange={(event) => setNewName(event.target.value)}
         />
       </div>
       <div>
         number: <input
+          name="number"
           value={newNumber}
           onChange={(event) => setNewNumber(event.target.value)}
         />

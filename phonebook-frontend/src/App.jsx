@@ -3,7 +3,7 @@ import loginService from './services/login'
 import personService from './services/persons'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
-import PersonForm from './components/PersonForm.test'
+import PersonForm from './components/PersonForm'
 
 const App = () => {
   const personFormRef = useRef()
@@ -58,18 +58,35 @@ const App = () => {
   }
 
   const createPerson = (personObject) => {
-    personService
-      .create(personObject)
-      .then(returnedPerson => {
+    // personService
+    //   .create(personObject)
+    //   .then(returnedPerson => {
+        const returnedPerson = { ...personObject, id: Date.now() } // Mock
         personFormRef.current.toggleVisibility() 
         setPersons(persons.concat(returnedPerson))
         setErrorMessage(`Added ${returnedPerson.name}`)
         setTimeout(() => setErrorMessage(null), 5000)
-      })
-      .catch(error => {
-        setErrorMessage(`Error: ${error.response.data.error}`)
-        setTimeout(() => setErrorMessage(null), 5000)
-      })
+    //   })
+    //   .catch(error => {
+    //     setErrorMessage(`Error: ${error.response.data.error}`)
+    //     setTimeout(() => setErrorMessage(null), 5000)
+    //   })
+  }
+
+  const deletePerson = (id) => {
+    if (window.confirm(`Delete person?`)) {
+    //   personService
+    //     .remove(id)
+    //     .then(() => {
+          setPersons(persons.filter(person => person.id !== id))
+          setErrorMessage(`Deleted person`)
+          setTimeout(() => setErrorMessage(null), 5000)
+    //     })
+    //     .catch(error => {
+    //       setErrorMessage(`Error: ${error.response.data.error}`)
+    //       setTimeout(() => setErrorMessage(null), 5000)
+    //     })
+    }
   }
 
   if (user === null) {
@@ -79,10 +96,10 @@ const App = () => {
         <Notification message={errorMessage} type='error' />
         <form onSubmit={handleLogin}>
           <div>
-            username <input value={username} onChange={({ target }) => setUsername(target.value)} />
+            username <input name="username" value={username} onChange={({ target }) => setUsername(target.value)} />
           </div>
           <div>
-            password <input type="password" value={password} onChange={({ target }) => setPassword(target.value)} />
+            password <input name="password" type="password" value={password} onChange={({ target }) => setPassword(target.value)} />
           </div>
           <button type="submit">login</button>
         </form>
@@ -106,7 +123,7 @@ const App = () => {
       <ul>
         {persons.map((person) => (
           <li key={person.id}>
-            {person.name} {person.number}
+            {person.name} {person.number} <button onClick={() => deletePerson(person.id)}>delete</button>
           </li>
         ))}
       </ul>
