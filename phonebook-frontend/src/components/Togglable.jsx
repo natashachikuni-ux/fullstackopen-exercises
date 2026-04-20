@@ -1,4 +1,5 @@
 import { useState, forwardRef, useImperativeHandle } from 'react'
+import PropTypes from 'prop-types' // 1. Import PropTypes
 
 const Togglable = forwardRef((props, refs) => {
   const [visible, setVisible] = useState(false)
@@ -10,7 +11,6 @@ const Togglable = forwardRef((props, refs) => {
     setVisible(!visible)
   }
 
-  // This hook makes the toggleVisibility function available to App.jsx
   useImperativeHandle(refs, () => {
     return {
       toggleVisibility
@@ -22,12 +22,20 @@ const Togglable = forwardRef((props, refs) => {
       <div style={hideWhenVisible}>
         <button onClick={toggleVisibility}>{props.buttonLabel}</button>
       </div>
-      <div style={showWhenVisible}>
+      <div style={showWhenVisible}className="togglableContent">
         {props.children}
         <button onClick={toggleVisibility}>cancel</button>
       </div>
     </div>
   )
 })
+
+// 2. Define the requirements
+Togglable.propTypes = {
+  buttonLabel: PropTypes.string.isRequired
+}
+
+// 3. Set a display name (helpful for debugging)
+Togglable.displayName = 'Togglable'
 
 export default Togglable

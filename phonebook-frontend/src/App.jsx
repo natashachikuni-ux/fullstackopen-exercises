@@ -3,7 +3,7 @@ import loginService from './services/login'
 import personService from './services/persons'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
-import PersonForm from './components/PersonForm'
+import PersonForm from './components/PersonForm.test'
 
 const App = () => {
   const personFormRef = useRef()
