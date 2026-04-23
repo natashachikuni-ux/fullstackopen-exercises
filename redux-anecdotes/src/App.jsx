@@ -3,6 +3,26 @@ import {
   Routes, Route, Link, useMatch, useNavigate
 } from 'react-router-dom'
 
+// 1. THE CUSTOM HOOK
+const useField = (type) => {
+  const [value, setValue] = useState('')
+
+  const onChange = (event) => {
+    setValue(event.target.value)
+  }
+
+  const reset = () => {
+    setValue('')
+  }
+
+  return {
+    type,
+    value,
+    onChange,
+    reset
+  }
+}
+
 const AnecdoteList = ({ anecdotes }) => (
   <div>
     <h2>Anecdotes</h2>
@@ -19,7 +39,7 @@ const AnecdoteList = ({ anecdotes }) => (
 const Anecdote = ({ anecdote }) => {
   return (
     <div>
-      <h2>{anecdote.content}</h2>
+      <h2>{anecdote.content} by {anecdote.author}</h2>
       <div>has {anecdote.votes} votes</div>
       <p>for more info see <a href={anecdote.info}>{anecdote.info}</a></p>
     </div>
@@ -34,14 +54,19 @@ const About = () => (
   </div>
 )
 
+// 2. UPDATED CREATENEW USING CUSTOM HOOKS
 const CreateNew = ({ addNew }) => {
-  const [content, setContent] = useState('')
+  const content = useField('text')
+  const author = useField('text')
+  const info = useField('text')
   const navigate = useNavigate()
 
   const handleSubmit = (e) => {
     e.preventDefault()
     addNew({
-      content,
+      content: content.value,
+      author: author.value,
+      info: info.value,
       votes: 0
     })
     navigate('/')
@@ -52,10 +77,15 @@ const CreateNew = ({ addNew }) => {
       <h2>create a new anecdote</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          content 
-          <input value={content} onChange={(e) => setContent(e.target.value)} />
+          content: <input {...content} /> 
         </div>
-        <button>create</button>
+        <div>
+          author: <input {...author} />
+        </div>
+        <div>
+          url for info: <input {...info} />
+        </div>
+        <button type="submit">create</button>
       </form>
     </div>
   )
@@ -65,15 +95,20 @@ const App = () => {
   const [anecdotes, setAnecdotes] = useState([
     {
       content: 'If it hurts, do it more often',
-      id: 1,
-      votes: 0
+      author: 'Jez Humble',
+      info: 'https://martinfowler.com/bliki/FrequencyReducesDifficulty.html',
+      votes: 0,
+      id: 1
     },
     {
       content: 'Premature optimization is the root of all evil',
-      id: 2,
-      votes: 0
+      author: 'Donald Knuth',
+      info: 'http://wiki.c2.com/?PrematureOptimization',
+      votes: 0,
+      id: 2
     }
   ])
+
   const [notification, setNotification] = useState('')
 
   const match = useMatch('/anecdotes/:id')
