@@ -1,25 +1,30 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { configureStore } from '@reduxjs/toolkit'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query' // Add this
 import { Provider } from 'react-redux'
+import { configureStore } from '@reduxjs/toolkit'
 
 import App from './App'
 import anecdoteReducer from './reducer'
 import filterReducer from './filterReducer'
-// 1. Import the new reducer here
-import notificationReducer from './notificationReducer' 
+import notificationReducer from './notificationReducer'
+
+// Initialize the Query Client
+const queryClient = new QueryClient()
 
 const store = configureStore({
   reducer: {
     anecdotes: anecdoteReducer,
     filter: filterReducer,
-    // 2. Register it in the store here
-    notification: notificationReducer 
+    notification: notificationReducer
   }
 })
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <Provider store={store}>
-    <App />
-  </Provider>
+  // Wrap the Provider with QueryClientProvider
+  <QueryClientProvider client={queryClient}>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </QueryClientProvider>
 )

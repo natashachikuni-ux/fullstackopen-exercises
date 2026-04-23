@@ -1,30 +1,56 @@
-import { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { initializeAnecdotes, createNewAnecdote, voteAnecdote } from './reducer'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import anecdoteService from './services/anecdotes'
+import { setNotification } from './notificationReducer'
 import Filter from './Filter'
 import Notification from './Notification'
-// 👇 CHANGE: Import setNotification instead of show/clear
-import { setNotification } from './notificationReducer' 
 
 const App = () => {
   const dispatch = useDispatch()
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    dispatch(initializeAnecdotes())
-  }, [dispatch])
-
-  const anecdotes = useSelector(state => {
-    const list = state.anecdotes || [] 
-    const filter = state.filter || ''
-
-    return [...list]
-      .filter(a => a.content.toLowerCase().includes(filter.toLowerCase()))
-      .sort((a, b) => b.votes - a.votes)
+  // 1. Fetching logic
+  const result = useQuery({
+    queryKey: ['anecdotes'],
+    queryFn: anecdoteService.getAll,
+    retry: false
   })
 
+  // 2. Mutation for creating new anecdotes
+  const newAnecdoteMutation = useMutation({
+    mutationFn: anecdoteService.createNew,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['anecdotes'] })
+    }
+  })
+
+  // 3. Mutation for updating votes
+  const updateVoteMutation = useMutation({
+    mutationFn: (updatedAnecdote) => 
+      anecdoteService.update(updatedAnecdote.id, updatedAnecdote),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['anecdotes'] })
+    }
+  })
+
+  const filter = useSelector(state => state.filter || '')
+
+  if (result.isLoading) {
+    return <div>loading data...</div>
+  }
+
+  if (result.isError) {
+    return <div>anecdote service not available due to problems in server</div>
+  }
+
+  const anecdotes = result.data
+    .filter(a => a.content.toLowerCase().includes(filter.toLowerCase()))
+    .sort((a, b) => b.votes - a.votes)
+
+  // 6. Event Handlers
   const vote = (anecdote) => {
-    dispatch(voteAnecdote(anecdote.id))
-    // Clean and simple!
+    const changedAnecdote = { ...anecdote, votes: anecdote.votes + 1 }
+    updateVoteMutation.mutate(changedAnecdote)
     dispatch(setNotification(`you voted '${anecdote.content}'`, 5))
   }
 
@@ -32,16 +58,14 @@ const App = () => {
     event.preventDefault()
     const content = event.target.anecdote.value
     event.target.anecdote.value = ''
-    dispatch(createNewAnecdote(content))
-    
-    // 👇 Use the same clean thunk here too!
+    newAnecdoteMutation.mutate(content)
     dispatch(setNotification(`new anecdote created: '${content}'`, 5))
   }
 
   return (
     <div>
-      <h2>Anecdotes</h2>
-      <Notification /> 
+      <h2>Anecdote app</h2>
+      <Notification />
       <Filter />
       
       {anecdotes.map(anecdote =>
