@@ -72,25 +72,39 @@ const CreateNew = ({ addNew }) => {
     navigate('/')
   }
 
+  // New reset handler
+  const handleReset = (e) => {
+    e.preventDefault()
+    content.reset()
+    author.reset()
+    info.reset()
+  }
+
+  // We "destructure" the reset out of the object so it's not passed to the input
+  // Only 'type', 'value', and 'onChange' remain in the 'spread' variable
+  const { reset: contentReset, ...contentInput } = content
+  const { reset: authorReset, ...authorInput } = author
+  const { reset: infoReset, ...infoInput } = info
+
   return (
     <div>
       <h2>create a new anecdote</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          content: <input {...content} /> 
+          content: <input {...contentInput} /> 
         </div>
         <div>
-          author: <input {...author} />
+          author: <input {...authorInput} />
         </div>
         <div>
-          url for info: <input {...info} />
+          url for info: <input {...infoInput} />
         </div>
         <button type="submit">create</button>
+        <button type="button" onClick={handleReset}>reset</button>
       </form>
     </div>
   )
 }
-
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
     {
