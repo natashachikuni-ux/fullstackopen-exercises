@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('path');
 
 module.exports = {
   mode: 'development',
@@ -8,6 +8,7 @@ module.exports = {
     filename: 'main.js',
     publicPath: '/',
   },
+  devtool: 'source-map',
   devServer: {
     static: {
       directory: path.resolve(__dirname),
@@ -44,4 +45,4 @@ module.exports = {
       },
     ],
   },
-}
+};
