@@ -1,5 +1,41 @@
 import { useState } from 'react'
+import { gql } from '@apollo/client'
+import { useMutation } from '@apollo/client/react'
 
+// Add these so refetchQueries knows what they are!
+const ALL_BOOKS = gql`
+  query {
+    allBooks {
+      title
+      author
+      published
+    }
+  }
+`
+
+const ALL_AUTHORS = gql`
+  query {
+    allAuthors {
+      name
+      born
+      bookCount
+    }
+  }
+`
+
+const CREATE_BOOK = gql`
+  mutation createBook($title: String!, $author: String!, $published: Int!, $genres: [String!]!) {
+    addBook(
+      title: $title,
+      author: $author,
+      published: $published,
+      genres: $genres
+    ) {
+      title
+      author
+    }
+  }
+`
 const NewBook = (props) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
@@ -7,14 +43,20 @@ const NewBook = (props) => {
   const [genre, setGenre] = useState('')
   const [genres, setGenres] = useState([])
 
+  // Initialize the mutation hook
+  const [ addBook ] = useMutation(CREATE_BOOK, {
+    refetchQueries: [ { query: ALL_BOOKS }, { query: ALL_AUTHORS } ]
+  })
+
   if (!props.show) {
-    return null
-  }
+  return null
+}
 
   const submit = async (event) => {
     event.preventDefault()
-
-    console.log('add book...')
+    
+    // Call the mutation function
+    addBook({  variables: { title, author, published: parseInt(published), genres } })
 
     setTitle('')
     setPublished('')
@@ -22,8 +64,8 @@ const NewBook = (props) => {
     setGenres([])
     setGenre('')
   }
-
-  const addGenre = () => {
+  
+    const addGenre = () => {
     setGenres(genres.concat(genre))
     setGenre('')
   }
