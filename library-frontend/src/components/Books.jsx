@@ -3,40 +3,35 @@ import { useQuery } from '@apollo/client/react'
 import { ALL_BOOKS } from '../queries'
 
 const Books = (props) => {
-  const result = useQuery(ALL_BOOKS)
-  const [filter, setFilter] = useState('all genres') // 2. State to track the selected button
+  const [filter, setFilter] = useState('all genres')
+
+  // 1. Always fetch all books to keep the genre buttons list complete
+  const allBooksResult = useQuery(ALL_BOOKS)
+
+  // 2. Fetch books based on the current filter state
+  const filteredBooksResult = useQuery(ALL_BOOKS, {
+    variables: { genre: filter === 'all genres' ? null : filter },
+    fetchPolicy: 'cache-and-network' // Ensures the table updates when you click buttons
+  })
 
   if (!props.show) return null
-  if (result.loading) return <div>loading books...</div>
-  if (!result.data || !result.data.allBooks) return <div>No books found. Check your backend.</div>
+  if (allBooksResult.loading || filteredBooksResult.loading) return <div>loading...</div>
 
-  const books = result.data.allBooks
+  const books = allBooksResult.data.allBooks
+  const displayBooks = filteredBooksResult.data.allBooks
 
-  // 3. Extract all unique genres from the books array
-  // flatMap flattens the arrays, Set removes duplicates!
-  const uniqueGenres = Array.from(new Set(books.flatMap(b => b.genres)))
-
-  // 4. Determine which books to show based on the filter state
-  const booksToShow = filter === 'all genres'
-    ? books 
-    : books.filter(b => b.genres.includes(filter))
+  // Extract unique genres for buttons
+  const genres = [...new Set(books.flatMap(b => b.genres))]
 
   return (
     <div>
       <h2>books</h2>
-      
-      {/* Optional: Show the user what they are filtering by */}
       <p>in genre <strong>{filter}</strong></p>
 
       <table>
         <tbody>
-          <tr>
-            <th>title</th>
-            <th>author</th>
-            <th>published</th>
-          </tr>
-          {/* 5. Map over booksToShow instead of books */}
-          {booksToShow.map((a) => (
+          <tr><th></th><th>author</th><th>published</th></tr>
+          {displayBooks.map((a) => (
             <tr key={a.title}>
               <td>{a.title}</td>
               <td>{a.author}</td>
@@ -46,15 +41,10 @@ const Books = (props) => {
         </tbody>
       </table>
 
-      {/* 6. Render the genre buttons dynamically */}
-      <div style={{ marginTop: '20px' }}>
-        {uniqueGenres.map(genre => (
-          <button key={genre} onClick={() => setFilter(genre)}>
-            {genre}
-          </button>
-        ))}
-        <button onClick={() => setFilter('all genres')}>all genres</button>
-      </div>
+      {genres.map(g => (
+        <button key={g} onClick={() => setFilter(g)}>{g}</button>
+      ))}
+      <button onClick={() => setFilter('all genres')}>all genres</button>
     </div>
   )
 }

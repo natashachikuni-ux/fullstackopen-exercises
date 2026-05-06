@@ -1,11 +1,12 @@
+import { useQuery, useMutation, useSubscription, useApolloClient } from '@apollo/client/react'
+import { BOOK_ADDED, ALL_BOOKS } from './queries' 
 import { useState } from 'react'
-import { useApolloClient } from '@apollo/client/react'
 import Authors from './components/Authors'
 import Books from './components/Books'
 import NewBook from './components/NewBook'
 import Notify from './components/Notify'
 import LoginForm from './components/LoginForm'
-import Recommend from './components/Recommend' // 1. ADDED IMPORT HERE
+import Recommend from './components/Recommend' 
 
 const App = () => {
   const [page, setPage] = useState('authors')
@@ -27,6 +28,32 @@ const App = () => {
     setPage('authors')
   }
 
+  // 👇 ADDED updateCacheWith HELPER HERE 👇
+  const updateCacheWith = (addedBook) => {
+    const includedIn = (set, object) => 
+      set.map(p => p.id).includes(object.id)  
+
+    const dataInStore = client.readQuery({ query: ALL_BOOKS })
+
+    if (dataInStore && !includedIn(dataInStore.allBooks, addedBook)) {
+      client.writeQuery({
+        query: ALL_BOOKS,
+        data: { allBooks: dataInStore.allBooks.concat(addedBook) }
+      })
+    }
+  }
+
+  // 👇 REPLACED THE OLD useSubscription HERE 👇
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data }) => {
+      const addedBook = data.data.bookAdded
+      window.alert(`New book added: ${addedBook.title} by ${addedBook.author.name || addedBook.author}`)
+      
+      // Inject the new book directly into the cache!
+      updateCacheWith(addedBook)
+    }
+  })
+
   return (
     <div>
       <div>
@@ -36,7 +63,6 @@ const App = () => {
         {token ? (
           <>
             <button onClick={() => setPage('add')}>add book</button>
-            {/* 2. ADDED RECOMMEND BUTTON HERE */}
             <button onClick={() => setPage('recommend')}>recommend</button>
             <button onClick={logout}>logout</button>
           </>
@@ -50,8 +76,6 @@ const App = () => {
       <Authors show={page === 'authors'} />
       <Books show={page === 'books'} />
       <NewBook show={page === 'add'} setError={notify} /> 
-      
-      {/* 3. ADDED THE RECOMMEND COMPONENT HERE */}
       <Recommend show={page === 'recommend'} />
 
       <LoginForm 
