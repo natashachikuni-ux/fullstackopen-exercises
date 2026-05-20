@@ -10,7 +10,7 @@ on:
 
 defaults:
   run:
-    working-directory: example-backend
+    working-directory: 'Part 12/example-backend'
 
 jobs:
   build:
