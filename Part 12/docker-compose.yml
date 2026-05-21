@@ -4,9 +4,14 @@ services:
     ports:
       - "8080:8080"
     container_name: compose-backend
+    environment:
+      - REQUEST_ORIGIN=http://localhost:5001
 
   frontend:
-    build: ./example-frontend
+    build:
+      context: ./example-frontend
+      args:
+        - REACT_APP_BACKEND_URL=http://localhost:8080
     ports:
       - "5001:80"
     container_name: compose-frontend
