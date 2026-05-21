@@ -1,10 +1,12 @@
-version: '3.8'
-
 services:
-  web-service:
-    image: devopsdockeruh/simple-web-service
-    container_name: web-server-dashboard
+  backend:
+    build: ./example-backend
     ports:
       - "8080:8080"
-    command: server
-    # Exercise 2.2 finished
+    container_name: compose-backend
+
+  frontend:
+    build: ./example-frontend
+    ports:
+      - "5001:80"
+    container_name: compose-frontend
