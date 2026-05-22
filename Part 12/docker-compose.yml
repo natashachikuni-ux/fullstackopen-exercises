@@ -7,10 +7,12 @@ services:
     environment:
       - REQUEST_ORIGIN=http://localhost:5001
       - REDIS_HOST=redis
-      - POSTGRES_HOST=postgres       # 👈 ADD THIS LINK
-      - POSTGRES_USER=postgres       # 👈 ADD THIS USERNAME
-      - POSTGRES_PASSWORD=postgres   # 👈 ADD THIS PASSWORD
-      - POSTGRES_DB=postgres         # 👈 ADD THIS DATABASE NAME
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./example-backend:/usr/src/app # 👈 Binds backend source code folder
 
   frontend:
     build:
@@ -20,12 +22,13 @@ services:
     ports:
       - "5001:80"
     container_name: compose-frontend
+    volumes:
+      - ./example-frontend:/usr/src/app # 👈 Binds frontend source code folder
 
   redis:
     image: redis:7-alpine
     container_name: compose-redis
 
-  # 👇 ADD THIS ENTIRE POSTGRES SERVICE SECTION
   postgres:
     image: postgres:15-alpine
     container_name: compose-postgres
@@ -33,3 +36,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
+    volumes:
+      - database_data:/var/lib/postgresql/data
+
+volumes:
+  database_data:
