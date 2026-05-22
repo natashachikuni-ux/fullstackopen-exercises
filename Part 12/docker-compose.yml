@@ -6,6 +6,11 @@ services:
     container_name: compose-backend
     environment:
       - REQUEST_ORIGIN=http://localhost:5001
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres       # 👈 ADD THIS LINK
+      - POSTGRES_USER=postgres       # 👈 ADD THIS USERNAME
+      - POSTGRES_PASSWORD=postgres   # 👈 ADD THIS PASSWORD
+      - POSTGRES_DB=postgres         # 👈 ADD THIS DATABASE NAME
 
   frontend:
     build:
@@ -15,3 +20,16 @@ services:
     ports:
       - "5001:80"
     container_name: compose-frontend
+
+  redis:
+    image: redis:7-alpine
+    container_name: compose-redis
+
+  # 👇 ADD THIS ENTIRE POSTGRES SERVICE SECTION
+  postgres:
+    image: postgres:15-alpine
+    container_name: compose-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
