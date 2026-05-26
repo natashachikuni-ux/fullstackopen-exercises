@@ -14,17 +14,15 @@ if [ -z "$GITHUB_REPO" ] || [ -z "$DOCKER_REPO" ]; then
 fi
 
 echo "🚀 Cloning GitHub repository: https://github.com/$GITHUB_REPO.git..."
-# Clean up any old workspace folders first
 rm -rf workspace-dir
-
-# 👇 ADD --depth 1 TO THIS LINE
 git clone --depth 1 https://github.com/$GITHUB_REPO.git workspace-dir
-
-# Move into the cloned code directory
 cd workspace-dir
 
 echo "🛠️ Building Docker image: $DOCKER_REPO..."
 docker build -t $DOCKER_REPO .
+
+echo "🔐 Authenticating with Docker Hub..."
+echo "$DOCKER_PWD" | docker login -u "$DOCKER_USER" --password-stdin
 
 echo "📤 Pushing image to Docker Hub..."
 docker push $DOCKER_REPO
