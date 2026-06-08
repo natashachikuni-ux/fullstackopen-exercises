@@ -1,4 +1,4 @@
-docker-compose.yml
-docker-compose.override.yml
-.secrets
-nginx.conf
+node_modules/
+.env
+dist/
+build/

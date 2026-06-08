@@ -1,0 +1,36 @@
+# Exercise 9.7: Exercise Calculator
+POST http://localhost:3003/exercises
+Content-Type: application/json
+
+{
+  "daily_exercises": [1, 0, 2, 0, 3, 0, 2.5],
+  "target": 2.5
+}
+
+###
+
+# Exercise 9.12: Add New Patient (Success Case)
+POST http://localhost:3001/api/patients
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "dateOfBirth": "1995-05-05",
+  "ssn": "050595-123A",
+  "gender": "female",
+  "occupation": "Technician"
+}
+
+###
+
+# Exercise 9.13: Add New Patient (Validation Error Case)
+POST http://localhost:3001/api/patients
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "dateOfBirth": "1995-05-05",
+  "ssn": "050595-123A",
+  "gender": "alien",
+  "occupation": "Technician"
+}
